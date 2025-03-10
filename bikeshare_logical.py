@@ -6,11 +6,11 @@ Created on Sat Nov 26 21:59:54 2022
 """
 import time
 import pandas as pd
-# import numpy as np
+import numpy as np
 
-CITY_DATA = { 'chicago': 'chicago.csv',
-              'new york city': 'new_york_city.csv',
-              'washington': 'washington.csv' }
+CITY_DATA = { 'c': 'chicago.csv',
+              'ny': 'new_york_city.csv',
+              'w': 'washington.csv' }
 
 def get_filters():
     """
@@ -23,29 +23,22 @@ def get_filters():
     """
     print('Hello! Let\'s explore some US bikeshare data!')
     # get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
-    city = input('please choose which city you would like to explore (chicago, new york city, washington): ')
-    city = city.lower()
-    while city !='chicago' and city !='new york city' and city !='washington' :
+    city = input('please choose which city you would like to explore (c for chicago,ny for  new york city,w for washington): ').lower()
+    while city not in ('c', 'ny', 'w') :
         print('\ninvalid answer! try again,')
-        city = input('please choose which city you would like to explore (chicago, new york city, washington): ')
-        city = city.lower()
-    
+        city = input('please choose which city you would like to explore (c for chicago,ny for new york city,w for washington): ').lower()    
     
     # get user input for month (all, january, february, ... , june)
-    month = input('please choose which month you would like to explore (all, january, february, march, april, may, june): ')
-    month = month.lower()
-    while month !='all' and month !='january' and month !='february' and month !='march' and month !='april' and month !='may' and month !='june' :
+    month = input('please choose which month you would like to explore (All, Jan, Feb, Mar, Apr, May, Jun): ').title()
+    while month not in ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] :
         print('\ninvalid answer! try again,')
-        month = input('please choose which month you would like to explore (all, january, february, march, april, may, june): ')
-        month = month.lower()
+        month = input('please choose which month you would like to explore (All, Jan, Feb, Mar, Apr, May, Jun): ').title()
     
     # get user input for day of week (all, monday, tuesday, ... sunday)
-    day = input('please choose which day you would like to explore (All, Monday, Tuesday, Wednesday, Thursday. Friday, Saturday, Sunday): ')
-    day =  day.title()
-    while day !='All' and day !='Monday' and day !='Tuesday' and day !='Wednesday' and day !='Thursday' and day !='Friday' and day !='Saturday' and day !='Sunday' :
+    day = input('please choose which day you would like to explore (All, Mon, Tue, Wed, Thu, Fri, Sat, Sun): ').title()
+    while day not in ['All', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] :
         print('\ninvalid answer! try again,')
-        day = input('please choose which day you would like to explore (All, Monday, Tuesday, Wednesday, Thursday. Friday, Saturday, Sunday): ')
-        day =  day.title()
+        day = input('please choose which day you would like to explore (All, Mon, Tue, Wed, Thu, Fri, Sat, Sun): ').title()
     print('-'*40)
     return city, month, day
 # =============================================================================
@@ -70,22 +63,19 @@ def load_data(city, month, day):
     df['Start Time'] = pd.to_datetime(df['Start Time'])
 
     # extracting month and day 
-    df['month'] = df['Start Time'].dt.month
-    df['day_of_week'] = df['Start Time'].dt.day_name()
+    df['Month'] = df['Start Time'].dt.month_name().apply(lambda x: x[:3])
+    df['Day'] = df['Start Time'].dt.day_name().apply(lambda x: x[:3])
 
 
     # month filter
-    if month != 'all':
-        
-        months = ['january', 'february', 'march', 'april', 'may', 'june']
-        month = months.index(month) +1
+    if month != 'All':        
             
-        df = df[df['month'] == month]
+        df = df[df['Month'] == month]
 
     # day filter 
     if day != 'All':
        
-        df = df[df['day_of_week'] == day ]
+        df = df[df['Day'] == day ]
     
     return df
 # =============================================================================
@@ -99,17 +89,17 @@ def time_stats(df,month,day):
     start_time = time.time()
 
     # display the most common month
-    if month =='all' :
+    if month =='All' :
         
-        common_month =  df['month'].mode()[0] 
+        common_month =  df['Month'].mode()[0] 
         print('most common month is: ', common_month)
     # display the most common day of week
     if day == 'All':
-        common_day = df['day_of_week'].mode()[0]
+        common_day = df['Day'].mode()[0]
         print('most common day is: ', common_day)
     # display the most common start hour
-    df['start hour'] = df['Start Time'].dt.hour
-    common_hour = df['start hour'].mode()[0]
+    df['Start Hour'] = df['Start Time'].dt.hour
+    common_hour = df['Start Hour'].mode()[0]
     print('most common hour is: ', common_hour)
     
     print("\nThis took %s seconds." % (time.time() - start_time))
@@ -131,8 +121,8 @@ def station_stats(df):
     common_end_station = df['End Station'].mode()[0]
     print('most common end station is: ', common_end_station)
     # display most frequent combination of start station and end station trip
-    df['trip'] =  df['Start Station'] +' to: '+ df['End Station']
-    common_trip = df['trip'].mode()[0]
+    df['Trip'] =  df['Start Station'] +' to: '+ df['End Station']
+    common_trip = df['Trip'].mode()[0]
     print('most common trip is from: ', common_trip)
     
 
@@ -151,10 +141,10 @@ def trip_duration_stats(df):
     start_time = time.time()
 
     # display total travel time
-    total_travel_time = df['Trip Duration'].sum()
+    total_travel_time = np.sum(df['Trip Duration'])
     print('total travel time in hours is: ', total_travel_time/3600)
-    # display mean travel time
-    avg_travel_time = df['Trip Duration'].mean()
+    # display average travel time
+    avg_travel_time = np.mean(df['Trip Duration'])
     print('average travel time in minutes is: ', avg_travel_time/60)
 
     print("\nThis took %s seconds." % (time.time() - start_time))
@@ -173,7 +163,7 @@ def user_stats(df):
     usertype_counts = df['User Type'].value_counts()
     print('counts of user types are: ', usertype_counts)
 
-    # Display counts of gender
+    # Display counts of gender inside try block to avoid KeyError incase of washington
     
     try:
         
@@ -184,9 +174,9 @@ def user_stats(df):
         earliest_birthyear = df['Birth Year'].min()
         recent_birthyear = df['Birth Year'].max()
         common_birthyear = df['Birth Year'].mode()[0]
-        print('birth year for oldest user is {} and youngest user is {} while the most common birth year is {}'.format(int(earliest_birthyear), int(recent_birthyear), int(common_birthyear)))
+        print(f'birth year for oldest user is {earliest_birthyear} and youngest user is {recent_birthyear} while the most common birth year is {common_birthyear}')
     except:
-        print('')
+        print('this city has no data available for Gender nor Birth Year')
     print("\nThis took %s seconds." % (time.time() - start_time))
     print('-'*40)
 
@@ -195,19 +185,18 @@ def user_stats(df):
 # =============================================================================
 
 def raw_data(df):
-    """asks user whether they would like want to see the raw data and displays it"""
+    """asks user whether they would like to see raw data and display it"""
     
-    n = 0                     #index of first row to br displayed
+    n = 0                     #index of first row to be displayed
     
     while True:
         
-        data_prompt = input('would you like to display 5 rows of raw data? enter: (yes or no)')
-        data_prompt = data_prompt.lower()
-        if data_prompt != 'yes' and data_prompt != 'no' :
+        data_prompt = input('would you like to display 5 rows of raw data? enter: (yes or no)').lower()
+        if data_prompt not in ('no', 'yes') :
             print('\ninvalid answer! try again,')
         
         elif data_prompt == 'yes' :
-            print(df.iloc[n:n+5])
+            print(df.iloc[n:n+5,:])
             n += 5
     
         else :
